@@ -1,0 +1,165 @@
+<var name="hack_utils_win">nmap\.exe|zenmap\.exe</var>
+<var name="hack_utils_unix">nmap|zenmap</var>
+
+<!-- группа возможных инцов, должно проверяться в списке исключений -->
+<group name="possible_incidents,">
+  <!-- блокировка учетки в винде -->
+  <rule id="100100" level="15">
+    <field name="win.system.eventID">4740</field>
+    <list field="win.eventdata.targetUserName" lookup="match_key">etc/lists/critical_users</list>
+    <description>Critical user is blocked.</description>
+    <options>no_full_log</options>
+  </rule>
+  <!-- можно также приплести включение отключенной учетки отдельным сценарием -->
+
+  <!-- hacktools -->
+  <rule id="100101" level="10">
+    <if_sid>67027</if_sid>
+    <field name="win.eventdata.newProcessName">$hack_utils_unix</field>
+    <description>Hacktool WINDOWS decected: $(win.eventdata.newProcessName)</description>
+    <options>no_full_log</options>
+  </rule>
+  <rule id="100102" level="10">
+    <if_sid>67027</if_sid>
+    <field name="win.eventdata.newProcessName">$hack_utils_win</field>
+    <description>Hacktool UNIX decected: $(win.eventdata.newProcessName)</description>
+    <options>no_full_log</options>
+  </rule>
+  
+  <!-- passwd changed -->
+  <rule id="100103" level="10">
+    <if_sid>5555</if_sid>
+    <list field="dstuser" lookup="match_key">etc/lists/critical_users</list>
+    <description>Critical user password changed in UNIX.</description>
+    <options>no_full_log</options>
+  </rule>
+  <rule id="100104" level="10">
+    <field name="win.system.eventID">4723</field>
+    <list field="win.eventdata.targetUserName" lookup="match_key">etc/lists/critical_users</list>
+    <description>Critical user password changed in WINDOWS.</description>
+    <options>no_full_log</options>
+  </rule>
+
+  <!-- system service -->
+  <rule id="100105" level="15">
+    <if_sid>100620</if_sid>
+    <field name="rule_id">87704</field>
+    <description>New system service is installed.</description>
+    <options>no_full_log</options>
+  </rule>
+  <!-- registry -->
+  <rule id="100106" level="15">
+    <if_sid>100620</if_sid>
+    <field name="rule_id">87704</field>
+    <description>Critical regictry was modified.</description>
+    <options>no_full_log</options>
+  </rule>
+  <!-- modification system files -->
+  <rule id="100107" level="15">
+    <if_sid>100620</if_sid>
+    <field name="rule_id">87704</field>
+    <description>System file was modified.</description>
+    <options>no_full_log</options>
+  </rule>
+  <!-- clear logs -->
+  <rule id="100108" level="15">
+    <if_sid>100620</if_sid>
+    <field name="rule_id">87704</field>
+    <description>Log file was cleared.</description>
+    <options>no_full_log</options>
+  </rule>
+  <!-- create/delete task -->
+  <rule id="100109" level="15">
+    <if_sid>100620</if_sid>
+    <field name="rule_id">87704</field>
+    <description>Task was created and deleted.</description>
+    <options>no_full_log</options>
+  </rule>
+  <!-- stop auditd -->
+  <rule id="100110" level="15">
+    <if_sid>100620</if_sid>
+    <field name="rule_id">87704</field>
+    <description>Auditd servise was stopped.</description>
+    <options>no_full_log</options>
+  </rule>
+  <!-- admin authecation -->
+  <!-- для винды уз из списка служебных -->
+  <!-- для винды уз из списка административных или 500 RID-->
+  <!-- для юникса UID < 1000 - служебки-->
+  <!-- для юникса UID = 0 - root -->
+  <rule id="100111" level="15">
+    <if_sid>100620</if_sid>
+    <field name="rule_id">87704</field>
+    <description>Built-in admin was authenticated.</description>
+    <options>no_full_log</options>
+  </rule>
+
+  <!-- critical privs -->
+  <!-- список крит привилегий для 4672 -->
+  <rule id="100112" level="15">
+    <if_sid>100620</if_sid>
+    <field name="rule_id">87704</field>
+    <description>Auth with critical privs.</description>
+    <options>no_full_log</options>
+  </rule>
+  <!-- create user -->
+  <rule id="100113" level="15">
+    <if_sid>100620</if_sid>
+    <field name="rule_id">87704</field>
+    <description>New user was created in UNIX.</description>
+    <options>no_full_log</options>
+  </rule>
+  <rule id="100114" level="15">
+    <if_sid>100620</if_sid>
+    <field name="rule_id">87704</field>
+    <description>New user was created in WINDOWS.</description>
+    <options>no_full_log</options>
+  </rule>
+  <!-- template -->
+  <rule id="100115" level="15">
+    <if_sid>100620</if_sid>
+    <field name="rule_id">87704</field>
+    <description>RAT activity detected: from $(srcip) to $(dstip) by $(dstport) port.</description>
+    <options>no_full_log</options>
+  </rule>
+  <!-- сюда же вынести правила админ доступа -->
+</group>
+
+<!-- группа по индикаторам -->
+<group name="ioc,">
+  <!-- шаблоны -->
+  <rule id="100104" level="10">
+    <field name="win.system.eventID">4723</field>
+    <list field="hash_field" lookup="match_key">etc/lists/malware_hash</list>
+    <description>Hash IOC detected.</description>
+    <options>no_full_log</options>
+  </rule>
+  <rule id="100104" level="10">
+    <field name="win.system.eventID">4723</field>
+    <list field="ip_field" lookup="match_key">etc/lists/malware_ip</list>
+    <description>IP IOC decected.</description>
+    <options>no_full_log</options>
+  </rule>
+  <!-- +исключения по каждому -->
+</group>
+
+<!-- группа инцидентов, должна расследоваться -->
+<group name="my_incidents,">
+  <!-- если это правило появляется в канале, то не до конца написаны инцы -->
+  <rule id="100620" level="15">
+    <decoded_as>json</decoded_as>
+    <field name="integration">exceptions</field>
+    <description>Default rule for incidents.</description>
+    <options>no_full_log</options>
+  </rule>
+  <!-- можно обойтись только первым правилом, дальше его отправлять куда-то -->
+  <!-- конкретные правила для инцов, которые прошли исключения -->
+  <rule id="100621" level="15">
+    <if_sid>100620</if_sid>
+    <field name="rule_id">87704</field>
+    <description>RAT activity detected: from $(srcip) to $(dstip) by $(dstport) port.</description>
+    <options>no_full_log</options>
+  </rule>
+
+<!-- здесь остальные инцидентные правила -->
+</group>

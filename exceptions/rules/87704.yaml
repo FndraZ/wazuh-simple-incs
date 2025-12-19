@@ -1,0 +1,10 @@
+# rat to outside
+# Порядок полей для хэширования
+field_order: ["srcip", "dstip", "dstport", "protocol"]
+
+# Где искать поля в JSON
+extract_rules:
+  srcip: "data.srcip"
+  dstip: "data.dstip" 
+  dstport: "data.dstport"
+  protocol: "data.protocol"
