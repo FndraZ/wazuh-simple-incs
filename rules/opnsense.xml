@@ -52,21 +52,23 @@
 		<description>Torrent activity</description>
 		<group>possible_inc,possible_ioc,</group>
 	</rule>
-	
-	<!-- EXCLUSIONS -->
+
+	<!-- GLOBAL EXCLUSIONS BY PARE -->
+	<!--
 	<rule id="87707" level="3">
 		<if_sid>87703</if_sid>
 		<list field="metainfo" lookup="match_key">etc/lists/excl_ip_pair</list>
-		<description>Traffic to EXTERNAL networks by admin port in profile</description>
+		<description>Traffic from EXTERNAL networks by admin port in profile</description>
 	</rule>
 	
 	<rule id="87708" level="3">
 		<if_sid>87704</if_sid>
 		<list field="metainfo" lookup="match_key">etc/lists/excl_ip_pair</list>
-		<description>Traffic from EXTERNAL networks by admin port in profile</description>
+		<description>Traffic to EXTERNAL networks by admin port in profile</description>
 	</rule>
-	
-	<!-- EXCLUSIONS BY SRC -->
+	-->
+	<!-- GLOBAL EXCLUSIONS BY SRC -->
+	<!--
 	<rule id="87709" level="3">
 		<if_sid>87703,87704,87705,87706</if_sid>
 		<list field="srcip" lookup="address_match_key">etc/lists/excl_ip_all</list>
@@ -78,4 +80,5 @@
 		<list field="dstip" lookup="address_match_key">etc/lists/excl_ip_all</list>
 		<description>Traffic by DST in profile</description>
 	</rule>
+	-->
 </group> 

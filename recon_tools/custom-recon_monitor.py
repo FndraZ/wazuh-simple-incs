@@ -16,7 +16,7 @@ REDIS_HOST = '192.168.1.11'
 REDIS_PORT = 6380
 THRESHOLD = 10                    # порог уникальных утилит
 WINDOW_HOURS = 1                  # временное окно
-RECORD_TTL = 10800                # 3 часа (секунды)
+RECORD_TTL = 10800                # 3 часа
 SOCKET_PATH = '/var/ossec/queue/sockets/integrations'
 LUA_SCRIPT_SHA = "e0a3467a10fbf5d4521ee252661aa2e74a1b9ecb"
 

@@ -128,32 +128,40 @@
 <!-- группа по индикаторам -->
 <group name="ioc,">
   <!-- шаблоны -->
+  <!-- придумать разные списки, откуда их брать -->
   <rule id="100104" level="10">
-    <field name="win.system.eventID">4723</field>
     <list field="hash_field" lookup="match_key">etc/lists/malware_hash</list>
     <description>Hash IOC detected.</description>
     <options>no_full_log</options>
   </rule>
   <rule id="100104" level="10">
-    <field name="win.system.eventID">4723</field>
     <list field="ip_field" lookup="match_key">etc/lists/malware_ip</list>
     <description>IP IOC decected.</description>
     <options>no_full_log</options>
   </rule>
-  <!-- +исключения по каждому -->
+  <rule id="100104" level="10">
+    <list field="ip_field" lookup="match_key">etc/lists/malware_ip</list>
+    <description>Connection to Tor exit node.</description>
+    <options>no_full_log</options>
+  </rule>
 </group>
 
+<!-- 
+нужно придумать, как отправлять срабатывания
+то есть получили 1 сработку, отправили на расследование
+как отключить остальные сработки на час?
+-->
+
 <!-- группа инцидентов, должна расследоваться -->
+<!-- по факту это не имеет смысла, сработки можно сразу отправлять куда надо -->
+<!--
 <group name="my_incidents,">
-  <!-- если это правило появляется в канале, то не до конца написаны инцы -->
   <rule id="100620" level="15">
     <decoded_as>json</decoded_as>
     <field name="integration">exceptions</field>
     <description>Default rule for incidents.</description>
     <options>no_full_log</options>
   </rule>
-  <!-- можно обойтись только первым правилом, дальше его отправлять куда-то -->
-  <!-- конкретные правила для инцов, которые прошли исключения -->
   <rule id="100621" level="15">
     <if_sid>100620</if_sid>
     <field name="rule_id">87704</field>
@@ -161,5 +169,5 @@
     <options>no_full_log</options>
   </rule>
 
-<!-- здесь остальные инцидентные правила -->
 </group>
+-->
