@@ -6,17 +6,53 @@ import json
 import hashlib
 import yaml
 import requests
-from datetime import datetime
+import redis
 from socket import socket, AF_UNIX, SOCK_DGRAM
 
 EXIT_SUCCESS = 0
 EXIT_INVALID_ALERT = 1
 EXIT_NO_CONFIG = 2
 EXIT_FIR_ERROR = 3
+EXIT_REDIS_ERROR = 5
 EXIT_UNKNOWN_ERROR = 4
 
 SOCKET_PATH = "/var/ossec/queue/sockets/queue"
 CONFIGS_DIR = "/var/ossec/etc/custom-exceptions"
+
+def init_redis_from_args():
+    try:
+        options_path = sys.argv[5]
+        if os.path.isfile(options_path):
+            with open(options_path, "r", encoding="utf-8") as f:
+                options = json.load(f)
+                
+                redis_host = options.get("redis_host", "localhost")
+                redis_port = int(options.get("redis_port", 6379))
+                redis_db = int(options.get("redis_db", 0))
+                redis_ttl = int(options.get("redis_ttl", 3600))
+                
+                r = redis.Redis(
+                    host=redis_host,
+                    port=redis_port,
+                    db=redis_db,
+                    socket_connect_timeout=2,
+                    socket_timeout=2,
+                    decode_responses=True
+                )
+                r.ping()
+                return r, redis_ttl
+        else:
+            return "error", 0
+    except Exception:
+        return "error", 0
+
+def check_redis_duplicate(redis_conn, rule_id, event_hash, ttl):
+    try:
+        key = f"w:{rule_id}:{event_hash}"
+        result = redis_conn.set(key, "1", ex=ttl, nx=True)
+        return result is None   
+    except Exception:
+        return False
 
 def get_nested(data, path):
     keys = path.split('.')
@@ -27,38 +63,27 @@ def get_nested(data, path):
             return ''
     return data or ''
 
-def extract_notification_fields(config, alert):
+def send_to_fir(config, alert, FIR_URL, FIR_TOKEN):
     notification_fields = {}
     
-    if 'notification_extract_rules' in config:
-        for field_name, path in config['notification_extract_rules'].items():
-            notification_fields[field_name] = str(get_nested(alert, path))
+    for field_name, path in config['notification_extract_rules'].items():
+        notification_fields[field_name] = str(get_nested(alert, path))
     
-    notification_fields['timestamp'] = datetime.now().isoformat()
-    notification_fields['alert_id'] = str(alert.get('id', ''))
+    notification_fields['timestamp'] = str(alert.get('timestamp'))
+    notification_fields['alert_id'] = str(alert.get('id'))
     
-    return notification_fields
-
-def send_to_fir(config, alert, FIR_URL, FIR_TOKEN):
     fir_config = config.get('fir')
-    
-    notification_fields = extract_notification_fields(config, alert)
-    
-    subject = fir_config.get('subject', 'Alert')
-    for field_name, value in notification_fields.items():
-        subject = subject.replace(f"{{{field_name}}}", str(value))
-    
-    description = fir_config.get('description_template', '')
-    for field_name, value in notification_fields.items():
-        description = description.replace(f"{{{field_name}}}", str(value))
+
+    subject = fir_config.get('subject').format(**notification_fields)
+    description = fir_config.get('description_template').format(**notification_fields)
         
     fir_data = {
         "subject": subject,
         "description": description,
         "severity": fir_config.get('severity', 3),
         "category": fir_config.get('category', 'wazuh_alert'),
-        "is_incident": fir_config.get('is_incident', True),
-        "detection": fir_config.get('detection', 'Wazuh'),
+        "is_incident": True,
+        "detection": 'Wazuh',
         "confidentiality": fir_config.get('confidentiality', "C1")
     }
     
@@ -85,7 +110,6 @@ def send_to_fir(config, alert, FIR_URL, FIR_TOKEN):
         return False
 
 def main():
-
     # CLI args
     if len(sys.argv) < 2:
         sys.exit(EXIT_INVALID_ALERT)
@@ -93,6 +117,7 @@ def main():
     alert_file = sys.argv[1]
     FIR_TOKEN = sys.argv[2]
     FIR_URL = sys.argv[3]
+    redis_error_exit = False
     
     # parse alert
     try:
@@ -119,10 +144,18 @@ def main():
                 config = yaml.safe_load(f)
         except:
             sys.exit(EXIT_NO_CONFIG)
+        # parse fields
+        exception_fields = {}
+        for field_name in config['field_order']:
+            path = config.get('extract_rules', {}).get(field_name, f"data.{field_name}")
+            exception_fields[field_name] = str(get_nested(alert, path))
+        # get event hash
+        hash_str = '|'.join(exception_fields.get(f, '') for f in config['field_order'])
+        event_hash = hashlib.md5(hash_str.encode()).hexdigest()
+
         # load exception file
         exceptions_file = f"{CONFIGS_DIR}/exceptions/{rule_id}.json"
         exceptions = set()
-
         if os.path.exists(exceptions_file):
             try:
                 with open(exceptions_file) as f:
@@ -130,49 +163,28 @@ def main():
             except:
                 pass
         # check exception
-        if exceptions and 'field_order' in config:
-            exception_fields = {}
-            for field_name in config['field_order']:
-                path = config.get('extract_rules', {}).get(field_name, f"data.{field_name}")
-                exception_fields[field_name] = str(get_nested(alert, path))
-            
-            hash_str = '|'.join(exception_fields.get(f, '') for f in config['field_order'])
-            event_hash = hashlib.md5(hash_str.encode()).hexdigest()
-            
+        if exceptions:
             if event_hash in exceptions:
                 sys.exit(EXIT_SUCCESS)  # excl, nothing to do
+        # check flood
+        redis_conn, redis_ttl = init_redis_from_args()
+        if redis_conn and redis_conn != "error":
+            is_duplicate = check_redis_duplicate(redis_conn, rule_id, event_hash, redis_ttl)
+            if is_duplicate:
+                sys.exit(EXIT_SUCCESS)  # flood, nothing to do
+        # redis connection failed
+        if redis_conn == "error":
+            redis_error_exit = True
         # send to fir
         if 'fir' in config:
             if send_to_fir(config, alert, FIR_URL, FIR_TOKEN):
+                if redis_error_exit:
+                    sys.exit(EXIT_REDIS_ERROR)
                 sys.exit(EXIT_SUCCESS)
             else:
                 sys.exit(EXIT_FIR_ERROR)
         
-        """
-        # send to wazuh
-        event = {
-            "integration": "custom-exceptions",
-            "rule_id": rule_id,
-            "timestamp": datetime.now().isoformat(),
-            "original_alert_id": alert.get('id'),
-        }
-        event.update(fields)
-        
-        json_str = json.dumps(event, separators=(',', ':'))
-        agent = alert.get('agent', {})
-        
-        if agent.get('id') != '000':
-            msg = f"1:[{agent['id']}] ({agent.get('name', 'unknown')}) {agent.get('ip', 'any')}->custom-exceptions:{json_str}"
-        else:
-            msg = f"1:custom-exceptions:{json_str}"
-        
-        sock = socket(AF_UNIX, SOCK_DGRAM)
-        sock.connect(SOCKET_PATH)
-        sock.send(msg.encode())
-        sock.close()
-        """
-
-        sys.exit(EXIT_SUCCESS)
+        sys.exit(EXIT_UNKNOWN_ERROR)
         
     except Exception as e:
         sys.exit(EXIT_UNKNOWN_ERROR)
