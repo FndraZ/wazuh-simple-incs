@@ -30,4 +30,4 @@ fir:
     3. If the initiator is the operation of the application, check its legitimacy.
     
   severity: 1
-  category: "create_delete_task" # ALWAYS NEED TO DEFINE IT IN FIR
+  category: "Create and delete task within 24h" # ALWAYS NEED TO DEFINE IT IN FIR
