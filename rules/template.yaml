@@ -1,0 +1,40 @@
+# rat to outside
+# FIELDS FOR EXCL
+field_order: ["srcip", "dstip", "dstport", "protocol"]
+
+extract_rules:
+  srcip: "data.srcip"
+  dstip: "data.dstip" 
+  dstport: "data.dstport"
+  protocol: "data.protocol"
+
+# STATS IF NEED
+threshold: 10
+window_hours: 1
+
+# FIELDS FOR ALERT FIR
+notification_extract_rules:
+  source_host: "data.srcip"
+  target_ip: "data.dstip"
+  target_port: "data.dstport"
+  connection_proto: "data.protocol"
+
+# FIR CONF
+fir:
+  subject: "RAT: {source_host} → {target_ip}:{target_port}"
+  
+  description_template: |
+    ## RAT Activity Detected
+    Time: {timestamp}
+    Alert ID: {alert_id}
+    
+    Source: {source_host}
+    Target: {target_ip}:{target_port}
+    Protocol: {connection_proto}
+    
+    Actions:
+    1. Investigate {source_host}
+    2. Block {target_ip} if external
+    
+  severity: 1
+  category: "RAT activity to outside" # ALWAYS NEED TO DEFINE IT IN FIR

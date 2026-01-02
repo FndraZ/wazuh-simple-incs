@@ -1,0 +1,397 @@
+<!-- нужно наполнить списки -->
+<var name="hack_utils_win">nmap\.exe|zenmap\.exe</var>
+<var name="hack_utils_unix">nmap|zenmap</var>
+<var name="rat_utils_win"></var>
+<var name="rat_utils_unix"></var>
+<var name="recon_utils_win"></var>
+<var name="recon_utils_unix"></var>
+
+<!-- нужно нормально продумать номера правил -->
+
+<!-- STATISTIC GROUPS 100100 ids-->
+<!-- SCHEDULED TASKS -->
+<!-- 
+можно использовать существующие правила 
+67014 - создание
+67015 - удаление
+-->
+<!--
+<group name="create_delete_task,">
+  <rule id="100101" level="15">
+    <if_sid>100620</if_sid>
+    <field name="rule_id">87704</field>
+    <description>Task was created.</description>
+    <options>no_full_log</options>
+  </rule>
+  <rule id="100102" level="15">
+    <if_sid>100620</if_sid>
+    <field name="rule_id">87704</field>
+    <description>Task was deleted.</description>
+    <options>no_full_log</options>
+  </rule>
+</group>
+-->
+
+<group name="recon_tools,">
+  <!-- Sysmon -->
+    <!-- Windows -->
+    <rule id="100101" level="10">
+      <if_sid>67027</if_sid>
+      <field name="data.win.eventdata.originalFileName">$recon_utils_win</field>
+      <description>Hacktool WINDOWS decected: $(win.eventdata.newProcessName)</description>
+      <options>no_full_log</options>
+    </rule>
+    <!-- Unix -->
+    <rule id="100102" level="10">
+      <if_sid>67027</if_sid>
+      <field name="НУЖНО ПОМЕНЯТЬ ПОЛЕ">$recon_utils_unix</field>
+      <description>Hacktool UNIX decected: $(win.eventdata.newProcessName)</description>
+      <options>no_full_log</options>
+    </rule>
+  <!-- Event log
+  <rule id="100101" level="10">
+    <if_sid>67027</if_sid>
+    <field name="win.eventdata.newProcessName">$recon_utils_win</field>
+    <description>Hacktool WINDOWS decected: $(win.eventdata.newProcessName)</description>
+    <options>no_full_log</options>
+  </rule>
+  -->
+  <!-- Auditd 
+  <rule id="100102" level="10">
+    <if_sid>67027</if_sid>
+    <field name="НУЖНО ПОМЕНЯТЬ ПОЛЕ">$recon_utils_unix</field>
+    <description>Hacktool UNIX decected: $(win.eventdata.newProcessName)</description>
+    <options>no_full_log</options>
+  </rule>
+  -->
+</group>
+
+<!-- BRUTEFORCE -->
+<group name="possible_bruteforce,">
+<!-- Windows -->
+  <!-- success auth win -->
+  <!-- failed auth win -->
+  <!-- 
+  можно не писать правила, 
+  взять готовые, 
+  добавить нужную группу 
+  нужно отключить некоторые правила
+  нет, нужно сделать фильтрацию только пользовательских уз
+  -->
+<!-- Unix -->
+  <!-- success auth -->
+  <!-- failed auth -->
+</group>
+
+
+<!-- STATIC GROUP 100300 ids-->
+<group name="possible_incidents,">
+  <!-- USER MANAGEMENT 100301 - 100325 -->
+    <!-- lockout - ID 4740 -->
+    <rule id="100301" level="15">
+      <field name="win.system.eventID">^4740$</field>
+      <list field="win.eventdata.targetUserName" lookup="match_key">etc/lists/critical_users</list>
+      <description>Critical user is blocked.</description>
+      <options>no_full_log</options>
+    </rule>
+    <!-- disable crit user - ID 4725 (RULE 60111)-->
+    <rule id="100302" level="15">
+      <if_sid>60111</if_sid>
+      <field name="win.system.eventID">^4725$</field>
+      <list field="win.eventdata.targetUserName" lookup="match_key">etc/lists/critical_users</list>
+      <description>Critical account was disabled.</description>
+      <options>no_full_log</options>
+      <group>adduser,account_changed,pci_dss_8.1.2,pci_dss_10.2.5,gpg13_7.10,gdpr_IV_35.7.d,gdpr_IV_32.2,hipaa_164.312.a.2.I,hipaa_164.312.a.2.II,hipaa_164.312.b,nist_800_53_AC.2,nist_800_53_IA.4,nist_800_53_AU.14,nist_800_53_AC.7,tsc_CC6.8,tsc_CC7.2,tsc_CC7.3,</group>
+      <mitre>
+        <id>T1098</id>
+        <id>T1531</id>
+      </mitre>
+    </rule>
+    <!-- delete crit user - ID 4726 (RULE 60111)-->
+    <rule id="100303" level="15">
+      <if_sid>60111</if_sid>
+      <field name="win.system.eventID">^4726$</field>
+      <list field="win.eventdata.targetUserName" lookup="match_key">etc/lists/critical_users</list>
+      <description>Critical account was deleted.</description>
+      <options>no_full_log</options>
+      <group>adduser,account_changed,pci_dss_8.1.2,pci_dss_10.2.5,gpg13_7.10,gdpr_IV_35.7.d,gdpr_IV_32.2,hipaa_164.312.a.2.I,hipaa_164.312.a.2.II,hipaa_164.312.b,nist_800_53_AC.2,nist_800_53_IA.4,nist_800_53_AU.14,nist_800_53_AC.7,tsc_CC6.8,tsc_CC7.2,tsc_CC7.3,</group>
+      <mitre>
+        <id>T1098</id>
+        <id>T1531</id>
+      </mitre>
+    </rule>
+    <!-- passwd changed -->
+    <rule id="100304" level="10">
+      <field name="win.system.eventID">^4723$|^4724$</field>
+      <list field="win.eventdata.targetUserName" lookup="match_key">etc/lists/critical_users</list>
+      <description>Critical user password changed in WINDOWS.</description>
+      <options>no_full_log</options>
+      <mitre>
+        <id>T1098</id>
+        <id>T1531</id>
+      </mitre>
+    </rule>
+    <!-- enabled/created user - ID 4720,4722 (RULE 60109) -->
+    <rule id="60109" level="8" overwrite="yes">
+      <if_sid>60103</if_sid>
+      <field name="win.system.eventID">^624$|^626$|^4720$|^4722$</field>
+      <description>User account enabled or created</description>
+      <options>no_full_log</options>
+      <group>adduser,account_changed,</group>
+      <group>pci_dss_8.1.2,pci_dss_10.2.5,gpg13_7.10,gdpr_IV_35.7.d,gdpr_IV_32.2,hipaa_164.312.a.2.I,hipaa_164.312.a.2.II,hipaa_164.312.b,nist_800_53_AC.2,nist_800_53_IA.4,nist_800_53_AU.14,nist_800_53_AC.7,tsc_CC6.8,tsc_CC7.2,tsc_CC7.3,windows,windows_security,</group>
+      <mitre>
+        <id>T1098</id>
+        <id>T1078</id>
+        <id>T1136</id>
+      </mitre>
+    </rule>
+    <!-- UNIX -->
+    <!-- create user можно переписать правило -->
+    <rule id="100305" level="15">
+      <if_sid>100620</if_sid>
+      <field name="rule_id">87704</field>
+      <description>New user was created in UNIX.</description>
+      <options>no_full_log</options>
+      <mitre>
+        <id>T1098</id>
+        <id>T1136</id>
+      </mitre>
+    </rule>
+    <!-- passwd changed -->
+    <rule id="100306" level="10">
+      <if_sid>5555</if_sid>
+      <list field="dstuser" lookup="match_key">etc/lists/critical_users</list>
+      <description>Critical user password changed in UNIX.</description>
+      <options>no_full_log</options>
+      <mitre>
+        <id>T1098</id>
+        <id>T1531</id>
+      </mitre>
+    </rule>
+  <!-- MALICIOUS TOOLS 100326 - 100350 -->
+    <!-- HACK TOOLS -->
+    <!-- SYSMON -->
+    <rule id="100111" level="10">
+      <if_sid>67027</if_sid>
+      <field name="win.eventdata.newProcessName">$hack_utils_win</field>
+      <description>Hacktool WINDOWS decected: $(win.eventdata.newProcessName)</description>
+      <options>no_full_log</options>
+    </rule>
+    <rule id="100112" level="10">
+      <if_sid>67027</if_sid>
+      <field name="НУЖНО ПОМЕНЯТЬ ПОЛЕ">$hack_utils_win</field>
+      <description>Hacktool UNIX decected: $(win.eventdata.newProcessName)</description>
+      <options>no_full_log</options>
+    </rule>
+    <!-- RAT TOOLS-->
+    <rule id="100113" level="10">
+      <if_sid>67027</if_sid>
+      <field name="win.eventdata.newProcessName">$rat_utils_win</field>
+      <description>RAT WINDOWS decected: $(win.eventdata.newProcessName)</description>
+      <options>no_full_log</options>
+    </rule>
+    <rule id="100114" level="10">
+      <if_sid>67027</if_sid>
+      <field name="НУЖНО ПОМЕНЯТЬ ПОЛЕ">$rat_utils_unix</field>
+      <description>RAT UNIX decected: $(win.eventdata.newProcessName)</description>
+      <options>no_full_log</options>
+    </rule>
+  <!-- PERSISTENCE -->
+    <!-- system service -->
+    <!-- example for test
+    sc create TestAuditSvc binPath= "C:\Windows\System32\calc.exe" start= demand DisplayName= "Тестовая служба для аудита"
+    sc query TestAuditSvc
+    sc start TestAuditSvc
+    sc stop TestAuditSvc
+    sc delete TestAuditSvc
+    -->
+    <rule id="100121" level="15"> 
+      <if_sid>61138</if_sid> <!-- rule "New Windows Service Created", 7045 ID-->
+      <!--field name="win.system.eventID">4697</field--> <!-- 7045 -->
+      <field name="win.eventdata.imagePath">ПЕРЕМЕННАЯ</field> <!-- win.eventdata.imagePath -->
+      <description>New system service is installed.</description>
+      <options>no_full_log</options>
+    </rule>
+    <!-- registry 13 id sysmon-->
+    <!-- example for test
+    reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Run" /v "TestWAZUH" /t REG_SZ /d "C:\Windows\System32\notepad.exe" /f
+    reg query "HKCU\Software\Microsoft\Windows\CurrentVersion\Run" /v "TestWAZUH"
+    reg delete "HKCU\Software\Microsoft\Windows\CurrentVersion\Run" /v "TestWAZUH" /f
+    -->
+    <rule id="100123" level="15">
+      <if_sid>61615</if_sid>
+      <field name="win.eventdata.targetObject">ПЕРЕМЕННАЯ</field>
+      <description>Critical regictry was modified.</description>
+      <options>no_full_log</options>
+    </rule>
+    <!-- modification system files -->
+    <!--
+    <rule id="100124" level="15">
+      <if_sid>100620</if_sid>
+      <field name="rule_id">87704</field>
+      <description>System file was modified.</description>
+      <options>no_full_log</options>
+    </rule>
+    -->
+    <!-- new system driver -->
+    <rule id="100125" level="15">
+      <if_sid>100620</if_sid>
+      <field name="rule_id">87704</field>
+      <description>New system driver was installed.</description>
+      <options>no_full_log</options>
+    </rule>
+    <!--
+    <rule id="100122" level="15">
+      <if_sid>100105</if_sid>
+      <field name="win.eventdata.serviceFileName">system</field>
+      <description>New system service is installed.</description>
+      <options>no_full_log</options>
+    </rule>
+    -->
+
+  <!-- ADMIN ACTIVITY 100351 - 100375 -->
+    <!-- admin authecation -->
+    <!-- для винды уз из списка служебных -->
+    <!-- для винды уз из списка административных или 500 RID-->
+    <!-- для юникса UID < 1000 - служебки-->
+    <!-- для юникса UID = 0 - root -->
+    <rule id="100131" level="15">
+      <if_sid>100620</if_sid>
+      <field name="rule_id">87704</field>
+      <description>Built-in admin was authenticated.</description>
+      <options>no_full_log</options>
+    </rule>
+    <!-- critical privs -->
+    <!-- список крит привилегий для 4672 -->
+    <rule id="100132" level="15">
+      <if_sid>100620</if_sid>
+      <field name="rule_id">87704</field>
+      <description>Auth with critical privs.</description>
+      <options>no_full_log</options>
+    </rule>
+  <!-- COVERING THE TRACKS 100376 - 100400 -->
+    <!-- clear logs -->
+    <!-- example for test
+    wevtutil cl "Windows PowerShell" - 104 event id
+    wevtutil cl "Security" - 1102 event id
+    -->
+    <rule id="100141" level="15">
+      <if_sid>100620</if_sid>
+      <field name="rule_id">87704</field>
+      <description>Log file was cleared.</description>
+      <options>no_full_log</options>
+    </rule>
+    <!-- stop auditd -->
+    <rule id="100142" level="15">
+      <if_sid>100620</if_sid>
+      <field name="rule_id">87704</field>
+      <description>Auditd servise was stopped.</description>
+      <options>no_full_log</options>
+    </rule>
+    <!-- stop audit win -->
+    <rule id="100143" level="15">
+      <if_sid>100620</if_sid>
+      <field name="rule_id">87704</field>
+      <description>Event logging is stopped.</description>
+      <options>no_full_log</options>
+    </rule>
+    <!-- change audit policy -->
+    <rule id="100144" level="15">
+      <if_sid>100620</if_sid>
+      <field name="rule_id">87704</field>
+      <description>Audit policy was changed.</description>
+      <options>no_full_log</options>
+    </rule>
+  
+  <!-- NETWORK ACTIVITY -->
+    <rule id="87703" level="7">
+      <if_sid>87701</if_sid>
+      <list field="dstport" lookup="match_key">etc/lists/malware_ports</list>
+      <description>Traffic to EXTERNAL networks by ADMIN port</description>
+      <group>possible_ioc,</group>
+    </rule>
+    <rule id="87704" level="7">
+      <if_sid>87702</if_sid>
+      <list field="dstport" lookup="match_key">etc/lists/malware_ports</list>
+      <description>Traffic from EXTERNAL networks by ADMIN port</description>
+      <group>possible_ioc,</group>
+    </rule>
+    <!-- TORRENT ACTIVITY -->
+    <rule id="87705" level="7">
+      <if_sid>87701,87702</if_sid>
+      <dstport type="pcre2">^(688[1-9]|689[0-9])$</dstport>
+      <description>Torrent activity</description>
+      <group>possible_ioc,</group>
+    </rule>
+    <rule id="87706" level="7">
+      <if_sid>87701,87702</if_sid>
+      <srcport type="pcre2">^(688[1-9]|689[0-9])$</srcport>
+      <description>Torrent activity</description>
+      <group>possible_ioc,</group>
+    </rule>
+</group>
+
+<!-- IOC GROUP 100400 -->
+<group name="ioc,">
+  <!-- HASH -->
+    <!-- Sysmon Windows -->
+    <rule id="100104" level="10">
+      <list field="hash_field" lookup="match_key">etc/lists/malware_hash</list>
+      <description>Hash IOC detected.</description>
+      <options>no_full_log</options>
+    </rule>
+    <!-- Sysmon Unix -->
+    <rule id="100104" level="10">
+      <list field="hash_field" lookup="match_key">etc/lists/malware_hash</list>
+      <description>Hash IOC detected.</description>
+      <options>no_full_log</options>
+    </rule>
+  <!-- IP -->
+    <rule id="100104" level="10">
+      <if_group>possible_ioc</if_group>
+      <list field="srcip" lookup="match_key">etc/lists/malware_ip</list>
+      <description>IP IOC decected.</description>
+      <options>no_full_log</options>
+    </rule>
+    <rule id="100104" level="10">
+      <if_group>possible_ioc</if_group>
+      <list field="dstip" lookup="match_key">etc/lists/malware_ip</list>
+      <description>IP IOC decected.</description>
+      <options>no_full_log</options>
+    </rule>
+    <rule id="100104" level="10">
+      <if_group>possible_ioc</if_group>
+      <list field="dstip" lookup="match_key">etc/lists/malware_ip</list>
+      <description>Connection to Tor exit node.</description>
+      <options>no_full_log</options>
+    </rule>
+</group>
+
+<!-- GLOBAL NETWORK EXCLUSIONS IF NEED -->
+	<!--
+	<rule id="87707" level="3">
+		<if_sid>87703</if_sid>
+		<list field="metainfo" lookup="match_key">etc/lists/excl_ip_pair</list>
+		<description>Traffic from EXTERNAL networks by admin port in profile</description>
+	</rule>
+	
+	<rule id="87708" level="3">
+		<if_sid>87704</if_sid>
+		<list field="metainfo" lookup="match_key">etc/lists/excl_ip_pair</list>
+		<description>Traffic to EXTERNAL networks by admin port in profile</description>
+	</rule>
+	-->
+	<!-- GLOBAL EXCLUSIONS BY SRC -->
+	<!--
+	<rule id="87709" level="3">
+		<if_sid>87703,87704,87705,87706</if_sid>
+		<list field="srcip" lookup="address_match_key">etc/lists/excl_ip_all</list>
+		<description>Traffic by SRC in profile</description>
+	</rule>
+	
+	<rule id="87710" level="3">
+		<if_sid>87703,87704,87705,87706</if_sid>
+		<list field="dstip" lookup="address_match_key">etc/lists/excl_ip_all</list>
+		<description>Traffic by DST in profile</description>
+	</rule>
+->

@@ -31,11 +31,12 @@ def main():
         sys.exit(EXIT_NO_CONFIG)
     
     fields = extract_fields(alert, config)
-    event_hash = generate_event_hash(fields, config['field_order'])
-    
-    if check_event_exclusion(event_hash, rule_id):
-        sys.exit(EXIT_SUCCESS)
-    
+
+    if config.get('check_exclusions', False):
+        if check_event_exclusion(fields, rule_id):
+            sys.exit(EXIT_SUCCESS)
+
+    event_hash = generate_event_hash(fields, config['field_order'])    
     redis_conn, redis_ttl = init_redis(sys.argv[5])
 
     if redis_conn and redis_conn != "error":

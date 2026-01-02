@@ -1,0 +1,33 @@
+# delete task
+field_order: ["host", "task"]
+
+extract_rules:
+  host: "data.win.system.computer"
+  task: "data.win.eventdata.taskName" 
+
+notification_extract_rules:
+  host: "data.win.system.computer"
+  task: "data.win.eventdata.taskName"
+  user: "data.win.eventdata.userName"
+
+fir:
+  subject: "Task {task} was created and deleted within 24h on {host}"
+  
+  description_template: |
+    Task was created and deleted within 24h.
+    Deletion:
+
+    Time: {timestamp}
+    Alert ID: {alert_id}
+    
+    Hostname: {host}
+    Taskname: {task}
+    Username: {user}
+
+    Actions:
+    1. Find the creation of a scheduled task (ID: 106) 
+    2. Find the source: the user and the creation process
+    3. If the initiator is the operation of the application, check its legitimacy.
+    
+  severity: 1
+  category: "create_delete_task" # ALWAYS NEED TO DEFINE IT IN FIR

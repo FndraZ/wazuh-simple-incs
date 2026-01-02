@@ -1,0 +1,24 @@
+<group name="pfsense,">
+	<!-- INCREASING PRIORITY FOR VISIBILITY -->
+	<rule id="87700" level="3">
+		<decoded_as>pf</decoded_as>
+		<program_name>filterlog</program_name>
+		<description>pfSense firewall rules grouped.</description>
+	</rule>
+	
+	<!-- GROUP FOR IOC -->
+	<!-- FROM/TO EXTERNAL -->
+	<rule id="87701" level="3">
+		<if_sid>87700</if_sid>
+		<list field="srcip" lookup="not_address_match_key">etc/lists/home_net</list>
+		<description>Traffic to EXTERNAL networks</description>
+		<group>possible_ioc,</group>
+	</rule>
+	
+	<rule id="87702" level="3">
+		<if_sid>87700</if_sid>
+		<list field="dstip" lookup="not_address_match_key">etc/lists/home_net</list>
+		<description>Traffic from EXTERNAL networks</description>
+		<group>possible_ioc,</group>
+	</rule>
+</group> 

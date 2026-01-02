@@ -1,0 +1,34 @@
+# Recon tools Windows Sysmon
+field_order: ["host", "user", "cmdline"]
+
+extract_rules:
+  host: "data.win.system.computer"
+  user: "data.win.eventdata.user"
+  cmdline: "data.win.eventdata.commandLine"
+
+threshold: 10
+window_hours: 1
+
+notification_extract_rules:
+  host: "data.win.system.computer"
+  user: "data.win.eventdata.user"
+  cmdline: "data.win.eventdata.commandLine"
+  tool: "data.eventdata.image"
+  parent_process: "data.win.eventdata.parentCommandLine"
+
+fir:
+  subject: "Recon tool activity detected at {host}"
+  description_template: |
+    Statistical reconnaissance detection
+    
+    Host: {host}
+    User: {user}
+    Last tool: {tool}
+    Last command: {cmdline}
+    Parent process: {parent_process}
+        
+    Timestamp: {timestamp}
+    Alert ID: {alert_id}
+  severity: 2
+  category: "Recon tools"
+  confidentiality: "C2"

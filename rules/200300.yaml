@@ -1,31 +1,27 @@
 # Recon tools Linux Sysmon
-# FIELDS FOR EXCL
-field_order: ["hostname", "user", "cmdline"]
+field_order: ["host", "user", "cmdline"]
 
 extract_rules:
-  hostname: "data.system.computer"
+  host: "data.system.computer"
   user: "data.eventdata.user" 
   cmdline: "data.eventdata.commandLine"
 
-# STATS
 threshold: 10
 window_hours: 1
 
-# FIELDS FOR ALERT FIR
 notification_extract_rules:
-  hostname: "data.system.computer"
+  host: "data.system.computer"
   user: "data.eventdata.user" 
   cmdline: "data.eventdata.commandLine"
   tool: "data.eventdata.image"
   cwd: "data.eventdata.currentDirectory"
 
-# FIR CONF
 fir:
-  subject: "Recon tool activity detected at {hostname}"
+  subject: "Recon tool activity detected at {host}"
   description_template: |
     Statistical reconnaissance detection
     
-    Host: {hostname}
+    Host: {host}
     User: {user}
     Last tool: {tool}
     Last command: {cmdline}

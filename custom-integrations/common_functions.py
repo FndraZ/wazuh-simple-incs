@@ -76,6 +76,29 @@ def generate_event_hash(fields, field_order):
     hash_str = '|'.join(fields.get(f, '') for f in field_order)
     return hashlib.md5(hash_str.encode()).hexdigest()
 
+def check_event_exclusion(fields_dict, rule_id):
+    exceptions = load_exceptions(rule_id)
+    if not exceptions:
+        return False
+    
+    for exclusion in exceptions:
+        match = True
+        
+        for field, excl_value in exclusion.items():
+            event_value = fields_dict.get(field, '')
+            
+            if excl_value == '*':
+                continue
+                
+            if str(event_value) != str(excl_value):
+                match = False
+                break
+        
+        if match:
+            return True
+    
+    return False
+
 def send_alert_to_fir(alert, config, fir_url, fir_token):
     notification_fields = {}
     

@@ -1,0 +1,26 @@
+<integration>
+  <name>custom-fir_with_excl</name>
+  <group>possible_inc</group>
+  <hook_url>http://YOUR_FIR/api/incidents</hook_url>
+  <api_key>API_KEY_FIR</api_key>
+  <alert_format>json</alert_format>
+  <options>{"redis_host": "REDIS", "redis_port": PORT, "redis_ttl": ANTIFLOOD}</options>
+</integration>
+
+<integration>
+  <name>custom-task_monitor</name>
+  <rule_id>67014,67015</rule_id>
+  <hook_url>http://YOUR_FIR/api/incidents</hook_url>
+  <api_key>API_KEY_FIR</api_key>
+  <alert_format>json</alert_format>
+  <options>{"redis_host": "REDIS", "redis_port": PORT, "redis_ttl": ANTIFLOOD}</options>
+</integration>
+
+<integration>
+  <name>custom-recon_monitor</name>
+  <group>recon_tools</group>
+  <hook_url>http://YOUR_FIR/api/incidents</hook_url>
+  <api_key>API_KEY_FIR</api_key>
+  <alert_format>json</alert_format>
+  <options>{"redis_host": "REDIS", "redis_port": PORT, "redis_ttl": ANTIFLOOD}</options>
+</integration>

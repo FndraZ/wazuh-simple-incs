@@ -1,0 +1,28 @@
+field_order: ["srcuser", "dstuser", "host"]
+
+extract_rules:
+  srcuser: "data.win.eventdata.subjectUserName"
+  dstuser: "data.win.eventdata.targetUserName" 
+  host: "data.win.system.computer"
+
+notification_extract_rules:
+  srcuser: "data.win.eventdata.subjectUserName"
+  srcdomain: "data.win.eventdata.subjectDomainName"
+  dstuser: "data.win.eventdata.targetUserName" 
+  dstdomain: "data.win.eventdata.targetDomainName"
+  host: "data.win.system.computer"
+
+fir:
+  subject: "Critical user {dstuser} was disabled by {dstuser} on {host}"
+  
+  description_template: |
+    Critical user was disabled
+    Time: {timestamp}
+    Alert ID: {alert_id}
+    
+    Target User: {dstdomain}\{dstuser}
+    Source User: {srcdomain}\{srcuser}
+    Hostname: {host}
+        
+  severity: 1
+  category: "Critical user was disabled"

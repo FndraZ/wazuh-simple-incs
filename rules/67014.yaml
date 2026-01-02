@@ -1,0 +1,6 @@
+# create task
+field_order: ["host", "task"]
+
+extract_rules:
+  host: "data.win.system.computer"
+  task: "data.win.eventdata.taskName" 
