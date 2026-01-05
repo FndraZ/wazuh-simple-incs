@@ -1,0 +1,39 @@
+# dst ioc
+field_order: ["srcip", "dstip", "dstport"]
+
+extract_rules:
+  srcip: "data.srcip"
+  dstip: "data.dstip" 
+  dstport: "data.dstport"
+
+notification_extract_rules:
+  srcip: "data.srcip"
+  dstip: "data.dstip"
+  dstport: "data.dstport"
+
+fir:
+  subject: "IoC: Outbound to malicious IP {dstip} from {srcip}"
+  
+  description_template: |
+    ## Malicious Destination IP Detected
+    **Time:** {timestamp}
+    **Alert ID:** {alert_id}
+    
+    **Source:** {srcip}
+    **Target (IoC):** {dstip}:{dstport}
+    
+    ### Investigation & Triage
+    1. **Check indicator context in MISP for:** {dstip}
+    2. **Search public threat intel sources** for recent activity and associated malware/campaigns.
+    3. **Assess False Positive likelihood:**
+       - IP is a known benign service (CDN, update server, NTP)?
+       - Indicator is old/stale?
+       - Detected connection doesn't match typical C2 pattern?
+    4. **If likely malicious or unclear:**
+       - **Isolate host `{srcip}`** for forensic analysis.
+       - Collect memory, running processes, persistence mechanisms.
+       - Search for related malware artifacts on the host.
+       - Identify initial access vector.
+  
+  severity: 1
+  category: "IOC"

@@ -171,32 +171,32 @@
   <!-- MALICIOUS TOOLS 100326 - 100350 -->
     <!-- HACK TOOLS -->
     <!-- SYSMON -->
-    <rule id="100111" level="10">
+    <rule id="100326" level="10">
       <if_sid>67027</if_sid>
       <field name="win.eventdata.newProcessName">$hack_utils_win</field>
       <description>Hacktool WINDOWS decected: $(win.eventdata.newProcessName)</description>
       <options>no_full_log</options>
     </rule>
-    <rule id="100112" level="10">
+    <rule id="100327" level="10">
       <if_sid>67027</if_sid>
       <field name="НУЖНО ПОМЕНЯТЬ ПОЛЕ">$hack_utils_win</field>
       <description>Hacktool UNIX decected: $(win.eventdata.newProcessName)</description>
       <options>no_full_log</options>
     </rule>
     <!-- RAT TOOLS-->
-    <rule id="100113" level="10">
+    <rule id="100328" level="10">
       <if_sid>67027</if_sid>
       <field name="win.eventdata.newProcessName">$rat_utils_win</field>
       <description>RAT WINDOWS decected: $(win.eventdata.newProcessName)</description>
       <options>no_full_log</options>
     </rule>
-    <rule id="100114" level="10">
+    <rule id="100329" level="10">
       <if_sid>67027</if_sid>
       <field name="НУЖНО ПОМЕНЯТЬ ПОЛЕ">$rat_utils_unix</field>
       <description>RAT UNIX decected: $(win.eventdata.newProcessName)</description>
       <options>no_full_log</options>
     </rule>
-  <!-- PERSISTENCE -->
+  <!-- PERSISTENCE 100351 - 100375 -->
     <!-- system service -->
     <!-- example for test
     sc create TestAuditSvc binPath= "C:\Windows\System32\calc.exe" start= demand DisplayName= "Тестовая служба для аудита"
@@ -205,7 +205,7 @@
     sc stop TestAuditSvc
     sc delete TestAuditSvc
     -->
-    <rule id="100121" level="15"> 
+    <rule id="100351" level="15"> 
       <if_sid>61138</if_sid> <!-- rule "New Windows Service Created", 7045 ID-->
       <!--field name="win.system.eventID">4697</field--> <!-- 7045 -->
       <field name="win.eventdata.imagePath">ПЕРЕМЕННАЯ</field> <!-- win.eventdata.imagePath -->
@@ -218,7 +218,7 @@
     reg query "HKCU\Software\Microsoft\Windows\CurrentVersion\Run" /v "TestWAZUH"
     reg delete "HKCU\Software\Microsoft\Windows\CurrentVersion\Run" /v "TestWAZUH" /f
     -->
-    <rule id="100123" level="15">
+    <rule id="100352" level="15">
       <if_sid>61615</if_sid>
       <field name="win.eventdata.targetObject">ПЕРЕМЕННАЯ</field>
       <description>Critical regictry was modified.</description>
@@ -234,22 +234,14 @@
     </rule>
     -->
     <!-- new system driver -->
-    <rule id="100125" level="15">
+    <rule id="100353" level="15">
       <if_sid>100620</if_sid>
       <field name="rule_id">87704</field>
       <description>New system driver was installed.</description>
       <options>no_full_log</options>
     </rule>
-    <!--
-    <rule id="100122" level="15">
-      <if_sid>100105</if_sid>
-      <field name="win.eventdata.serviceFileName">system</field>
-      <description>New system service is installed.</description>
-      <options>no_full_log</options>
-    </rule>
-    -->
 
-  <!-- ADMIN ACTIVITY 100351 - 100375 -->
+  <!-- ADMIN ACTIVITY 100376 - 100400 -->
     <!-- admin authecation -->
     <!-- для винды уз из списка служебных -->
     <!-- для винды уз из списка административных или 500 RID-->
@@ -269,40 +261,39 @@
       <description>Auth with critical privs.</description>
       <options>no_full_log</options>
     </rule>
-  <!-- COVERING THE TRACKS 100376 - 100400 -->
+  <!-- COVERING THE TRACKS 100401 -->
     <!-- clear logs -->
     <!-- example for test
     wevtutil cl "Windows PowerShell" - 104 event id
     wevtutil cl "Security" - 1102 event id
     -->
-    <rule id="100141" level="15">
+    <rule id="100401" level="15">
       <if_sid>100620</if_sid>
       <field name="rule_id">87704</field>
       <description>Log file was cleared.</description>
       <options>no_full_log</options>
     </rule>
     <!-- stop auditd -->
-    <rule id="100142" level="15">
+    <rule id="100402" level="15">
       <if_sid>100620</if_sid>
       <field name="rule_id">87704</field>
       <description>Auditd servise was stopped.</description>
       <options>no_full_log</options>
     </rule>
     <!-- stop audit win -->
-    <rule id="100143" level="15">
+    <rule id="100403" level="15">
       <if_sid>100620</if_sid>
       <field name="rule_id">87704</field>
       <description>Event logging is stopped.</description>
       <options>no_full_log</options>
     </rule>
     <!-- change audit policy -->
-    <rule id="100144" level="15">
+    <rule id="100404" level="15">
       <if_sid>100620</if_sid>
       <field name="rule_id">87704</field>
       <description>Audit policy was changed.</description>
       <options>no_full_log</options>
     </rule>
-  
   <!-- NETWORK ACTIVITY -->
     <rule id="87703" level="7">
       <if_sid>87701</if_sid>
@@ -331,38 +322,39 @@
     </rule>
 </group>
 
-<!-- IOC GROUP 100400 -->
+<!-- IOC GROUP 100500 -->
 <group name="ioc,">
+  <!-- IP -->
+    <rule id="100501" level="10">
+      <if_group>possible_ioc</if_group>
+      <list field="srcip" lookup="match_key">etc/lists/malware_ip</list>
+      <description>Source IP IOC detected.</description>
+      <options>no_full_log</options>
+    </rule>
+    <rule id="100502" level="10">
+      <if_group>possible_ioc</if_group>
+      <list field="dstip" lookup="match_key">etc/lists/malware_ip</list>
+      <description>Destination IP IOC detected.</description>
+      <options>no_full_log</options>
+    </rule>
+  <!-- DOMAIN DNS-RESOLVE -->
+    <rule id="100526" level="10">
+      <if_sid>500000</if_sid>
+      <list field="url" lookup="match_key">etc/lists/misp_urlhaus_domains</list>
+      <description>DNS-resolve IOC domain.</description>
+      <options>no_full_log</options>
+    </rule>
   <!-- HASH -->
     <!-- Sysmon Windows -->
-    <rule id="100104" level="10">
+    <rule id="100551" level="10">
       <list field="hash_field" lookup="match_key">etc/lists/malware_hash</list>
       <description>Hash IOC detected.</description>
       <options>no_full_log</options>
     </rule>
     <!-- Sysmon Unix -->
-    <rule id="100104" level="10">
+    <rule id="100552" level="10">
       <list field="hash_field" lookup="match_key">etc/lists/malware_hash</list>
       <description>Hash IOC detected.</description>
-      <options>no_full_log</options>
-    </rule>
-  <!-- IP -->
-    <rule id="100104" level="10">
-      <if_group>possible_ioc</if_group>
-      <list field="srcip" lookup="match_key">etc/lists/malware_ip</list>
-      <description>IP IOC decected.</description>
-      <options>no_full_log</options>
-    </rule>
-    <rule id="100104" level="10">
-      <if_group>possible_ioc</if_group>
-      <list field="dstip" lookup="match_key">etc/lists/malware_ip</list>
-      <description>IP IOC decected.</description>
-      <options>no_full_log</options>
-    </rule>
-    <rule id="100104" level="10">
-      <if_group>possible_ioc</if_group>
-      <list field="dstip" lookup="match_key">etc/lists/malware_ip</list>
-      <description>Connection to Tor exit node.</description>
       <options>no_full_log</options>
     </rule>
 </group>

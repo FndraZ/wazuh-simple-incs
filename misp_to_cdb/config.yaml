@@ -1,0 +1,23 @@
+misp_url: "YOUR_MISP"
+misp_key: "API"
+
+# Deployment: "docker" or "local"
+deployment_target: "docker"
+docker_container: "single-node-wazuh.manager-1"
+
+lists:
+  - name: "all_malware_ip_src"
+    attribute_type: "ip-src"
+    file: "misp_ip_src"
+    format: '"{value}":Malware_SRC'
+  
+  - name: "all_malware_ip_dst"
+    attribute_type: "ip-dst"
+    file: "misp_ip_dst"
+    format: '"{value}":Malware_DST'
+  
+  - name: "all_malware_domains"
+    attribute_type: "domain"
+    file: "misp_domains_for_unbound"
+    format: '"{value}.":Malware_Domain' # I couldn't remove the dot at the end of the domain using decoders
+  

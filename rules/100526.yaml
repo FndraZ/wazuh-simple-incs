@@ -1,0 +1,36 @@
+# domain ioc dns resolve
+field_order: ["srcip", "domain"]
+
+extract_rules:
+  srcip: "data.srcip"
+  domain: "data.url" 
+
+notification_extract_rules:
+  srcip: "data.srcip"
+  domain: "data.url"
+
+fir:
+  subject: "IoC: DNS request to {domain} from {srcip}"
+  
+  description_template: |
+    ## RAT Activity Detected
+    **Time:** {timestamp}
+    **Alert ID:** {alert_id}
+
+    **Source:** {srcip}
+    **Domain (IoC):** {domain}
+    
+    ### Investigation & Triage
+    1. **Check indicator context in MISP for:** {domain}
+    2. **Search public sources** for domain reputation and registration details.
+    3. **Assess False Positive likelihood:**
+       - Domain is popular CDN/cloud/service?
+       - Old domain, recently repurposed?
+    4. **If likely malicious or unclear:**
+       - Inspect host `{srcip}` for malware execution artifacts.
+       - Check if domain resolved successfully and led to an outbound connection.
+       - Add domain to internal DNS blocklist.
+       - Search for other hosts querying this or related domains.
+    
+  severity: 1
+  category: "IOC"

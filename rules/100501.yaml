@@ -1,0 +1,39 @@
+# source ioc
+field_order: ["srcip", "dstip", "dstport"]
+
+extract_rules:
+  srcip: "data.srcip"
+  dstip: "data.dstip" 
+  dstport: "data.dstport"
+
+notification_extract_rules:
+  srcip: "data.srcip"
+  dstip: "data.dstip"
+  dstport: "data.dstport"
+
+fir:
+  subject: "IoC: Inbound from {srcip} to {dstip}:{dstport}"
+  
+  description_template: |
+    ## Malicious Source IP Address Detected
+    **Time:** {timestamp}
+    **Alert ID:** {alert_id}
+    
+    **Source (IoC):** {srcip}
+    **Target:** {dstip}:{dstport}
+    
+    ### Investigation & Triage
+    1. **Check indicator context in MISP for:** {srcip}
+    2. **Search public threat intel sources** for recent reputation and activity context.
+    3. **Assess False Positive likelihood:**
+       - IP hosts many services (CDN, cloud, shared hosting)?
+       - Indicator is old/stale in MISP?
+       - Multiple sources report it as clean?
+       - Detected activity doesn't match IoC context?
+    4. **If likely malicious or unclear:**
+       - Inspect target host `{dstip}` for related artifacts.
+       - Check for other internal communications with `{srcip}`.
+       - Consider blocking at network perimeter if external.
+    
+  severity: 1
+  category: "IOC"

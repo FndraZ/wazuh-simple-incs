@@ -1,0 +1,24 @@
+<!--
+Jan  4 08:23:53 OPNsense.internal unbound[70637]: [70637:0] reply: 192.168.1.179 reddit.map.fastly.net. AAAA IN NOERROR 0.000000 1 111
+Jan  4 08:23:53 OPNsense.internal unbound[70637]: [70637:0] query: 192.168.1.179 reddit.map.fastly.net. AAAA IN
+-->
+
+<!-- я не знаю, почему, но нужно отключить встроенный декодер в ossec.conf
+<decoder_exclude>0345-unbound_decoders.xml</decoder_exclude>
+-->
+
+<decoder name="unbound">
+  <program_name>^unbound</program_name>
+</decoder>
+
+<decoder name="unbound">
+  <parent>unbound</parent>
+  <regex>(\w+):\s+(\d+\.\d+\.\d+\.\d+)\s+(\S+)\s+(\S+)\s+</regex>
+  <order>action, srcip, url, record_type</order>
+</decoder>
+
+<decoder name="unbound">
+  <parent>unbound</parent>
+  <regex>IN\s+(\S+)</regex>
+  <order>status</order>
+</decoder>
