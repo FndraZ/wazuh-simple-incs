@@ -1,0 +1,25 @@
+# delete user unix
+field_order: ["dstuser", "host"]
+
+extract_rules:
+  dstuser: "data.srcuser" 
+  host: "predecoder.hostname"
+
+notification_extract_rules:
+  dstuser: "data.srcuser" 
+  host: "predecoder.hostname"
+
+fir:
+  subject: "User {dstuser} was deleted on {host}"
+  
+  description_template: |
+    User was deleted.
+
+    Time: {timestamp}
+    Alert ID: {alert_id}
+    
+    Deleted User: {dstuser}
+    Hostname: {host}
+        
+  severity: 1
+  category: "User management"

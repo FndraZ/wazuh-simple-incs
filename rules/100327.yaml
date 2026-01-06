@@ -1,0 +1,35 @@
+# HACKTOOL DETECTION - UNIX
+# FIELDS FOR EXCL
+field_order: ["process_name", "hostname", "user"]
+
+extract_rules:
+  process_name: "data.eventdata.image"
+  hostname: "data.computer_name"
+  user: "data.eventdata.user"
+
+# FIELDS FOR ALERT FIR
+notification_extract_rules:
+  malicious_process: "data.eventdata.image"
+  host: "data.computer_name"
+  executed_by: "data.eventdata.user"
+
+# FIR CONF
+fir:
+  subject: "Hacktool: {malicious_process} on {host}"
+  
+  description_template: |
+    ## Hacktool Detected on Unix/Linux Host
+    **Time:** {timestamp}
+    **Alert ID:** {alert_id}
+    
+    **Tool:** {malicious_process}
+    **Host:** {host}
+    **User:** {executed_by}
+    
+    ### Investigation Steps
+    1. Analyze execution time delta (check for recent similar launches).
+    2. Search for inbound/outbound connections from this host around execution time.
+    3. Check for associated scripts/payloads in /tmp, home directories.
+    
+  severity: 1
+  category: "Malicious Tools Execution"

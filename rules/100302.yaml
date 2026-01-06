@@ -1,3 +1,4 @@
+# disable crit user
 field_order: ["srcuser", "dstuser", "host"]
 
 extract_rules:
@@ -25,4 +26,4 @@ fir:
     Hostname: {host}
         
   severity: 1
-  category: "Critical user was disabled"
+  category: "User management"

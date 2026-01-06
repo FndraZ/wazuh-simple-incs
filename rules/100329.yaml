@@ -1,0 +1,36 @@
+# RAT DETECTION - UNIX
+# FIELDS FOR EXCL
+field_order: ["process_name", "hostname", "user"]
+
+extract_rules:
+  process_name: "data.eventdata.image"
+  hostname: "data.computer_name"
+  user: "data.eventdata.user"
+
+# FIELDS FOR ALERT FIR
+notification_extract_rules:
+  rat_name: "data.eventdata.image"
+  host: "data.computer_name"
+  user: "data.eventdata.user"
+
+# FIR CONF
+fir:
+  subject: "RAT: {rat_name} on {host}"
+  
+  description_template: |
+    ## Remote Access Trojan (RAT) Detected - Unix/Linux
+    **Time:** {timestamp}
+    **Alert ID:** {alert_id}
+    
+    **RAT Name:** {rat_name}
+    **Host:** {host}
+    **User:** {user}
+    
+    ### Investigation Steps
+    1. Analyze execution time delta and check crontab/systemd for persistence.
+    2. Search for outbound C2 connections from this host (netstat/ss history).
+    3. Check for inbound connections if RAT has server component.
+    4. Examine bash history and /tmp for download/execution artifacts.
+    
+  severity: 1
+  category: "RAT Activity"

@@ -1,0 +1,25 @@
+# password unix
+field_order: ["dstuser", "host"]
+
+extract_rules:
+  dstuser: "data.dstuser" 
+  host: "predecoder.hostname"
+
+notification_extract_rules:
+  dstuser: "data.dstuser" 
+  host: "predecoder.hostname"
+
+fir:
+  subject: "Password for critical user {dstuser} was changed on {host}"
+  
+  description_template: |
+    User was deleted.
+
+    Time: {timestamp}
+    Alert ID: {alert_id}
+    
+    User: {dstuser}
+    Hostname: {host}
+        
+  severity: 1
+  category: "User management"

@@ -1,4 +1,4 @@
-# delete crit user win
+# critical privs win
 field_order: ["srcuser", "dstuser", "host"]
 
 extract_rules:
@@ -14,7 +14,7 @@ notification_extract_rules:
   host: "data.win.system.computer"
 
 fir:
-  subject: "Critical user {dstuser} was deleted by {dstuser} on {host}"
+  subject: "Critical user {dstuser} password was changed by {dstuser} on {host}"
   
   description_template: |
     Critical user was deleted

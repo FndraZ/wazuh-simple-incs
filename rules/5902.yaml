@@ -1,0 +1,26 @@
+# create user unix
+field_order: ["dstuser", "host"]
+
+extract_rules:
+  dstuser: "data.dstuser" 
+  host: "predecoder.hostname"
+
+notification_extract_rules:
+  dstuser: "data.dstuser" 
+  host: "predecoder.hostname"
+  uid: "data.uid"
+
+fir:
+  subject: "New user {dstuser} was created on {host}"
+  
+  description_template: |
+    New user was created.
+
+    Time: {timestamp}
+    Alert ID: {alert_id}
+    
+    New User: {dstuser} ({uid})
+    Hostname: {host}
+        
+  severity: 1
+  category: "User management"
