@@ -1,4 +1,4 @@
-# password unix
+# Unix critical user password change
 field_order: ["dstuser", "host"]
 
 extract_rules:
@@ -10,16 +10,29 @@ notification_extract_rules:
   host: "predecoder.hostname"
 
 fir:
-  subject: "Password for critical user {dstuser} was changed on {host}"
+  subject: "Password changed for critical user on {host}: {dstuser}"
   
   description_template: |
-    User was deleted.
-
-    Time: {timestamp}
-    Alert ID: {alert_id}
+    ## Critical User Password Change Detected
+    **Time:** {timestamp}
+    **Alert ID:** {alert_id}
     
-    User: {dstuser}
-    Hostname: {host}
-        
-  severity: 1
-  category: "User management"
+    **Host:** {host}
+    **User:** {dstuser}
+    
+    ### Investigation Context
+    Password changes for critical users require verification:
+    - Root and system accounts (UID 0, <1000)
+    - Service accounts with elevated privileges
+    - Administrative users
+    - Accounts used for authentication between systems
+    
+    ### Investigation Steps
+    1. **User criticality:** Determine if {dstuser} is privileged or service account.
+    2. **Authorization check:** Verify if change was scheduled/authorized.
+    3. **Access review:** Check recent login attempts for {dstuser}.
+    4. **Source validation:** Identify if change originated from management system.
+    5. **Credential rotation:** Ensure new password follows security policy.
+    
+  severity: 2
+  category: "Authentication Event"

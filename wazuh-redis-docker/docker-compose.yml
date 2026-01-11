@@ -1,0 +1,37 @@
+services:
+  wazuh-redis:
+    image: redis:alpine
+    container_name: wazuh-redis
+    restart: always
+    networks:
+      - single-node_default
+    volumes:
+      - redis_data:/data
+      - ./scripts:/scripts:ro
+    command: >
+      sh -c "
+        redis-server --appendonly yes --bind 0.0.0.0 &
+        REDIS_PID=$$!
+
+        sleep 3
+
+        if ls /scripts/*.lua 1>/dev/null 2>&1; then
+          echo 'Loading Lua scripts...'
+          for script in /scripts/*.lua; do
+            echo \"  - $$(basename $$script)\"
+            redis-cli SCRIPT LOAD \"$$(cat $$script)\" >/dev/null 2>&1 && echo '    Success' || echo '    Failed'
+          done
+        fi
+
+        echo 'Redis is ready with Lua scripts'
+
+        wait $$REDIS_PID
+      "
+
+volumes:
+  redis_data:
+
+networks:
+  single-node_default:
+    external: true
+    name: single-node_default

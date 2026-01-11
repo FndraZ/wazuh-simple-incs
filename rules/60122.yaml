@@ -1,0 +1,50 @@
+# Failed login attempts
+lua_script_sha: "d289f2ec722ebf0999c5a8dc19fe73a9353b316f"
+event_type: "failed"
+field_order: ["source", "target", "username", "login_type"]
+
+extract_rules:
+  source: "data.win.eventdata.ipAddress"
+  target: "data.win.eventdata.workstationName"
+  username: "data.win.eventdata.targetUserName"
+  login_type: "data.win.eventdata.logonType"
+
+thresholds:
+  regular: 10
+  multi_source: 5
+  multi_target: 5
+  multi_user: 3
+
+check_exclusions: false
+
+notification_extract_rules:
+  source: "data.win.eventdata.ipAddress"
+  target: "data.win.system.computer"
+  username: "data.win.eventdata.targetUserName"
+  login_type: "data.win.eventdata.logonType"
+  login_process: "data.win.eventdata.processName"
+  domain: "data.win.eventdata.targetDomainName"
+  substatus: "data.win.eventdata.subStatus"
+
+fir:
+  subject: "[Bruteforce] {bruteforce_type} attack detected from {source} to {target}"
+  description_template: |
+    Bruteforce attack detected
+    
+    Attack Type: {bruteforce_type}
+    Source IP: {source}
+    Target: {target}
+    Username: {username}
+    Login Type: {login_type}
+    
+    Metrics:
+    - Regular attempts: {regular_attempts}
+    - Unique sources for target: {unique_sources}
+    - Unique targets from source: {unique_targets}
+    - Unique users: {unique_users}
+        
+    Timestamp: {timestamp}
+    Alert ID: {alert_id}
+  severity: 2
+  category: "Bruteforce Attack"
+  confidentiality: "C2"

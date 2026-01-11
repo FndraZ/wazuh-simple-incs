@@ -1,0 +1,42 @@
+# New system service installed in critical directory
+field_order: ["hostname", "path"]
+
+extract_rules:
+  hostname: "data.win.system.computer"
+  path: "data.win.eventdata.imagePath"
+
+# FIELDS FOR ALERT FIR
+notification_extract_rules:
+  host: "data.win.system.computer"
+  service_path: "data.win.eventdata.imagePath"
+  service_name: "data.win.eventdata.serviceName"
+  service_type: "data.win.eventdata.serviceType"
+  start_type: "data.win.eventdata.startType"
+
+# FIR CONF
+fir:
+  subject: "Suspicious service installed on {host}: {service_name}"
+  
+  description_template: |
+    ## New System Service Installed in Critical Directory
+    **Time:** {timestamp}
+    **Alert ID:** {alert_id}
+    
+    **Host:** {host}
+    **Service Name:** {service_name}
+    **Service Path:** {service_path}
+    **Service Type:** {service_type}
+    **Start Type:** {start_type}
+    
+    ### Investigation Context
+    A new Windows service has been installed in a potentially suspicious location.
+    
+    ### Investigation Steps
+    1. **Path analysis:** Verify if {service_path} is in a legitimate software directory.
+    2. **File reputation:** Check service binary hash in MISP/VirusTotal.
+    3. **Service properties:** Review service description, display name, and dependencies.
+    4. **Execution context:** Determine what triggered service installation.
+    5. **Persistence check:** Look for other persistence mechanisms on the host.
+    
+  severity: 1
+  category: "Suspicious Service Installation"

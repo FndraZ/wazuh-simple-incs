@@ -1,0 +1,49 @@
+# Successful login after bruteforce
+lua_script_sha: "d289f2ec722ebf0999c5a8dc19fe73a9353b316f"
+event_type: "success"
+field_order: ["source", "target", "username", "login_type"]
+
+extract_rules:
+  source: "data.win.eventdata.ipAddress"
+  target: "data.win.eventdata.workstationName"
+  username: "data.win.eventdata.targetUserName"
+  login_type: "data.win.eventdata.logonType"
+
+thresholds:
+  regular: 5
+  multi_source: 3
+  multi_target: 3
+  multi_user: 2
+
+check_exclusions: false
+
+notification_extract_rules:
+  source: "data.win.eventdata.ipAddress"
+  target: "data.win.system.computer"
+  username: "data.win.eventdata.targetUserName"
+  login_type: "data.win.eventdata.logonType"
+  login_process: "data.win.eventdata.processName"
+  domain: "data.win.eventdata.targetDomainName"
+
+fir:
+  subject: "[Bruteforce] Successful login after {bruteforce_type} attack from {source}"
+  description_template: |
+    Successful authentication after bruteforce attack
+    
+    Previous Attack Type: {bruteforce_type}
+    Source IP: {source}
+    Target: {target}
+    Username: {username}
+    Login Type: {login_type}
+    
+    Attack metrics before success:
+    - Regular attempts: {regular_attempts}
+    - Unique sources for target: {unique_sources}
+    - Unique targets from source: {unique_targets}
+    - Unique users: {unique_users}
+        
+    Timestamp: {timestamp}
+    Alert ID: {alert_id}
+  severity: 1
+  category: "Bruteforce Success"
+  confidentiality: "C2"

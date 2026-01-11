@@ -1,0 +1,44 @@
+# Critical registry was modified
+field_order: ["regictry", "hostname", "user"]
+
+extract_rules:
+  regictry: "data.win.eventdata.targetObject"
+  hostname: "data.win.system.computer"
+  user: "data.win.eventdata.user"
+
+notification_extract_rules:
+  registry: "data.win.eventdata.targetObject"
+  host: "data.win.system.computer"
+  user: "data.win.eventdata.user"
+  value: "data.win.eventdata.details"
+
+# FIR CONF
+fir:
+  subject: "Critical registry modified on {host}: {registry}"
+  
+  description_template: |
+    ## Critical Windows Registry Modification
+    **Time:** {timestamp}
+    **Alert ID:** {alert_id}
+    
+    **Host:** {host}
+    **User:** {user}
+    **Registry Key:** {registry}
+    **Value:** {value}
+    
+    ### Investigation Context
+    Modification of critical registry keys can indicate:
+    - Persistence mechanisms (Run keys, services)
+    - Security policy bypass (UAC, AppLocker)
+    - System configuration tampering
+    - Malware installation
+        
+    ### Investigation Steps
+    1. **Legitimacy check:** Verify if change corresponds to authorized software installation/update.
+    2. **Value analysis:** Examine {value} for suspicious paths/commands.
+    3. **Timeline correlation:** Check for related events (process execution, file creation).
+    4. **User context:** Determine if {user} typically performs such administrative actions.
+    5. **Registry backup:** Check if previous registry values were exported/backed up.
+    
+  severity: 1
+  category: "Registry Tampering"

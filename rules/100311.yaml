@@ -1,4 +1,4 @@
-# create user svc unix
+# Unix service account creation
 field_order: ["dstuser", "host"]
 
 extract_rules:
@@ -6,21 +6,26 @@ extract_rules:
   host: "predecoder.hostname"
 
 notification_extract_rules:
-  dstuser: "data.dstuser" 
+  username: "data.dstuser" 
   host: "predecoder.hostname"
   uid: "data.uid"
 
 fir:
-  subject: "New system user {dstuser} was created on {host}"
+  subject: "Service account created on {host}: {username} (UID: {uid})"
   
   description_template: |
-    New system user was created.
-
-    Time: {timestamp}
-    Alert ID: {alert_id}
+    ## Service Account Creation Detected
+    **Time:** {timestamp}
+    **Alert ID:** {alert_id}
     
-    New User: {dstuser} ({uid})
-    Hostname: {host}
+    **Host:** {host}
+    **Created User:** {username}
+    **User ID:** {uid}
         
-  severity: 1
-  category: "User management"
+    ### Investigation Steps
+    1. Determine which application/service requires this account.
+    2. Review account permissions and file ownerships.
+    3. Validate with system administrators if this was planned.
+    
+  severity: 2
+  category: "Service Account Management"

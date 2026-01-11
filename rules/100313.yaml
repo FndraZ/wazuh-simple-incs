@@ -1,4 +1,4 @@
-# delete user unix
+# Unix user deletion
 field_order: ["dstuser", "host"]
 
 extract_rules:
@@ -10,16 +10,34 @@ notification_extract_rules:
   host: "predecoder.hostname"
 
 fir:
-  subject: "User {dstuser} was deleted on {host}"
+  subject: "User deleted on {host}: {dstuser}"
   
   description_template: |
-    User was deleted.
-
-    Time: {timestamp}
-    Alert ID: {alert_id}
+    ## Unix/Linux User Account Deletion
+    **Time:** {timestamp}
+    **Alert ID:** {alert_id}
     
-    Deleted User: {dstuser}
-    Hostname: {host}
-        
-  severity: 1
-  category: "User management"
+    **Host:** {host}
+    **Deleted User:** {dstuser}
+    
+    ### Investigation Context
+    User deletion events require investigation when:
+    - Deletion occurs outside maintenance windows
+    - Privileged accounts are deleted (UID < 1000)
+    - Multiple accounts deleted in short timeframe
+    - Service or admin accounts affected
+    
+    ### Critical Scenarios:
+    1. **Admin account deletion** - possible denial of service
+    2. **Service account deletion** - application disruption  
+    3. **Mass deletions** - potential attacker cleanup activity
+    
+    ### Investigation Steps
+    1. **Account identification:** Determine user type and privileges.
+    2. **Timing analysis:** Check if deletion was during authorized maintenance.
+    3. **Impact assessment:** Identify affected services/applications.
+    4. **Correlation:** Look for related events (logins, file modifications).
+    5. **Recovery:** Check if backups exist for user data.
+    
+  severity: 2
+  category: "User Management"

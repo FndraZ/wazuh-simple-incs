@@ -13,9 +13,10 @@ def main():
     if len(sys.argv) < 6:
         sys.exit(EXIT_INVALID_ALERT)
     
-    alert_file = sys.argv[1]
-    FIR_TOKEN = sys.argv[2]
-    FIR_URL = sys.argv[3]
+    alert_file   = sys.argv[1]
+    FIR_TOKEN    = sys.argv[2]
+    FIR_URL      = sys.argv[3]
+    REDIS_CONFIG = sys.argv[5]
     
     try:
         with open(alert_file, 'r') as f:
@@ -36,29 +37,35 @@ def main():
         if check_event_exclusion(fields, rule_id):
             sys.exit(EXIT_SUCCESS)
 
-    redis_conn, redis_ttl = init_redis(sys.argv[5])
+    redis_conn, redis_ttl = init_redis(REDIS_CONFIG)
     if redis_conn == "error":
         sys.exit(EXIT_REDIS_ERROR)
 
     event_hash = generate_event_hash(fields, config['field_order'])
     creation_key = f"w:task_monitoring:{event_hash}"
     
-    if rule_id == "67014": # CREATE
+    CREATE_RULE_ID = "67014"
+    DELETE_RULE_ID = "67015"
+    CREATION_TTL = 86400  # 24 часа
+    
+    if rule_id == CREATE_RULE_ID:
         timestamp = alert.get('timestamp', '')
-        redis_conn.set(creation_key, timestamp, ex=86400) #24h
+        redis_conn.set(creation_key, timestamp, ex=CREATION_TTL)
         sys.exit(EXIT_SUCCESS)
         
-    elif rule_id == "67015": # DELETE
+    elif rule_id == DELETE_RULE_ID:
         deleted_count = redis_conn.delete(creation_key)
         if deleted_count > 0:
-            key = f"w:{rule_id}:{event_hash}"
+            flood_key = f"w:{rule_id}:{event_hash}"
             result = redis_conn.set(key, "1", ex=redis_ttl, nx=True)
             if result is None:
                 sys.exit(EXIT_SUCCESS)
 
-            if send_alert_to_fir(alert, config, FIR_URL, FIR_TOKEN):
-                sys.exit(EXIT_SUCCESS)
-            else:
+            if not send_alert_to_fir(alert, config, FIR_URL, FIR_TOKEN):
+                try:
+                    redis_conn.delete(flood_key)
+                except:
+                    pass
                 sys.exit(EXIT_FIR_ERROR)
         
         sys.exit(EXIT_SUCCESS)

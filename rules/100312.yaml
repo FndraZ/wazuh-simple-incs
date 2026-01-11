@@ -1,4 +1,4 @@
-# create user root
+# Unix root-equivalent user creation (UID 0)
 field_order: ["dstuser", "host"]
 
 extract_rules:
@@ -6,21 +6,31 @@ extract_rules:
   host: "predecoder.hostname"
 
 notification_extract_rules:
-  dstuser: "data.dstuser" 
+  username: "data.dstuser" 
   host: "predecoder.hostname"
   uid: "data.uid"
 
 fir:
-  subject: "New ROOT user {dstuser} was created on {host}"
+  subject: "Root-equivalent user created on {host}: {username} (UID: {uid})"
   
   description_template: |
-    New ROOT user was created.
-
-    Time: {timestamp}
-    Alert ID: {alert_id}
+    ## Root-Equivalent User Created (UID 0)
+    **Time:** {timestamp}
+    **Alert ID:** {alert_id}
     
-    New User: {dstuser} ({uid})
-    Hostname: {host}
-        
+    **Host:** {host}
+    **Created User:** {username}
+    **User ID:** {uid} (UID 0 - ROOT PRIVILEGES)
+    
+    ### Critical Context
+    User with UID 0 has full root privileges. This is highly suspicious and requires immediate investigation.
+    
+    ### Investigation Steps
+    1. **IMMEDIATE:** Check if user is currently logged in or has active sessions.
+    2. **Host isolation:** Consider isolating {host} if unauthorized root access is confirmed.
+    3. **Forensic analysis:** Examine /etc/passwd, /etc/shadow, and authentication logs.
+    4. **Backdoor check:** Look for SSH keys, cron jobs, or persistence mechanisms.
+    5. **Lateral movement:** Check for connections from/to this host.
+    
   severity: 1
-  category: "User management"
+  category: "User Management

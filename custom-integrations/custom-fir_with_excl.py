@@ -13,9 +13,10 @@ def main():
     if len(sys.argv) < 6:
         sys.exit(EXIT_INVALID_ALERT)
     
-    alert_file = sys.argv[1]
-    FIR_TOKEN = sys.argv[2]
-    FIR_URL = sys.argv[3]
+    alert_file   = sys.argv[1]
+    FIR_TOKEN    = sys.argv[2]
+    FIR_URL      = sys.argv[3]
+    REDIS_CONFIG = sys.argv[5]
     
     try:
         with open(alert_file, 'r') as f:
@@ -36,20 +37,19 @@ def main():
         if check_event_exclusion(fields, rule_id):
             sys.exit(EXIT_SUCCESS)
 
-    event_hash = generate_event_hash(fields, config['field_order'])    
-    redis_conn, redis_ttl = init_redis(sys.argv[5])
+    redis_conn, redis_ttl = init_redis(REDIS_CONFIG)
+    flood_key = f"w:{rule_id}:{generate_event_hash(fields, config['field_order'])}"
 
     if redis_conn and redis_conn != "error":
-        key = f"w:{rule_id}:{event_hash}"
-        result = redis_conn.set(key, "1", ex=redis_ttl, nx=True)
+        result = redis_conn.set(flood_key, "1", ex=redis_ttl, nx=True)
         if result is None:
             sys.exit(EXIT_SUCCESS)
     
-    if send_alert_to_fir(alert, config, FIR_URL, FIR_TOKEN):
-        if redis_conn == "error":
-            sys.exit(EXIT_REDIS_ERROR)
-        sys.exit(EXIT_SUCCESS)
-    else:
+    if not send_alert_to_fir(alert, config, FIR_URL, FIR_TOKEN):
+        try:
+            redis_conn.delete(flood_key)
+        except:
+            pass
         sys.exit(EXIT_FIR_ERROR)
 
 if __name__ == "__main__":

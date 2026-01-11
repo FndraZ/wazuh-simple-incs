@@ -4,7 +4,16 @@
   <hook_url>http://YOUR_FIR/api/incidents</hook_url>
   <api_key>API_KEY_FIR</api_key>
   <alert_format>json</alert_format>
-  <options>{"redis_host": "REDIS", "redis_port": PORT, "redis_ttl": ANTIFLOOD}</options>
+  <options>{"redis_host": "wazuh-redis", "redis_port": 6379, "redis_ttl": 3600}</options>
+</integration>
+
+<integration>
+  <name>custom-fir_with_excl</name>
+  <rule_id>63103,63104,80703</rule_id>
+  <hook_url>http://YOUR_FIR/api/incidents</hook_url>
+  <api_key>API_KEY_FIR</api_key>
+  <alert_format>json</alert_format>
+  <options>{"redis_host": "wazuh-redis", "redis_port": 6379, "redis_ttl": 3600}</options>
 </integration>
 
 <integration>
@@ -13,7 +22,7 @@
   <hook_url>http://YOUR_FIR/api/incidents</hook_url>
   <api_key>API_KEY_FIR</api_key>
   <alert_format>json</alert_format>
-  <options>{"redis_host": "REDIS", "redis_port": PORT, "redis_ttl": ANTIFLOOD}</options>
+  <options>{"redis_host": "wazuh-redis", "redis_port": 6379, "redis_ttl": 3600}</options>
 </integration>
 
 <integration>
@@ -22,5 +31,14 @@
   <hook_url>http://YOUR_FIR/api/incidents</hook_url>
   <api_key>API_KEY_FIR</api_key>
   <alert_format>json</alert_format>
-  <options>{"redis_host": "REDIS", "redis_port": PORT, "redis_ttl": ANTIFLOOD}</options>
+  <options>{"redis_host": "wazuh-redis", "redis_port": 6379, "redis_ttl": 3600}</options>
+</integration>
+
+<integration>
+  <name>custom-bruteforce</name>
+  <rule_id>60106,60122</rule_id>
+  <hook_url>http://YOUR_FIR/api/incidents</hook_url>
+  <api_key>API_KEY_FIR</api_key>
+  <alert_format>json</alert_format>
+  <options>{"redis_host": "wazuh-redis", "redis_port": 6379, "redis_ttl": 3600}</options>
 </integration>

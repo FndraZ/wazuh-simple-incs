@@ -1,0 +1,33 @@
+# WINDOWS SECURITY LOG CLEAR - EVENT ID 1102
+field_order: ["hostname", "user"]
+
+extract_rules:
+  hostname: "data.win.system.computer"
+  user: "data.win.logFileCleared.subjectUserName"
+
+notification_extract_rules:
+  host: "data.win.system.computer"
+  user: "data.win.logFileCleared.subjectUserName"
+
+fir:
+  subject: "Security audit log was cleared on {host} by {user}"
+  
+  description_template: |
+    ## Windows Security Log Cleared (Event ID 1102)
+    **Time:** {timestamp}
+    **Alert ID:** {alert_id}
+    
+    **Host:** {host}
+    **User:** {user}
+    
+    ### Investigation Context
+    Event ID 1102 indicates the security log was cleared. This is a common attacker technique to hide evidence.
+    
+    ### Investigation Steps
+    1. **Determine legitimacy:** Check if this was scheduled maintenance or authorized activity.
+    2. **Analyze timeline:** Review other suspicious events before log clearance.
+    3. **Check user activity:** Investigate other actions by {user} around this time.
+    4. **Look for persistence:** Search for tools/scheduled tasks that could clear logs.
+    
+  severity: 1
+  category: "Log Tampering"

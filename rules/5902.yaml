@@ -1,4 +1,4 @@
-# create user unix
+# Unix regular user creation
 field_order: ["dstuser", "host"]
 
 extract_rules:
@@ -6,21 +6,27 @@ extract_rules:
   host: "predecoder.hostname"
 
 notification_extract_rules:
-  dstuser: "data.dstuser" 
+  username: "data.dstuser" 
   host: "predecoder.hostname"
   uid: "data.uid"
 
 fir:
-  subject: "New user {dstuser} was created on {host}"
+  subject: "User created on {host}: {username} (UID: {uid})"
   
   description_template: |
-    New user was created.
-
-    Time: {timestamp}
-    Alert ID: {alert_id}
+    ## Unix/Linux User Account Creation
+    **Time:** {timestamp}
+    **Alert ID:** {alert_id}
     
-    New User: {dstuser} ({uid})
-    Hostname: {host}
-        
-  severity: 1
-  category: "User management"
+    **Host:** {host}
+    **Created User:** {username}
+    **User ID:** {uid}
+    
+    ### Investigation Steps
+    1. Verify username naming convention compliance.
+    2. Review /etc/passwd entry for shell and home directory.
+    3. Check if user was added to any privileged groups.
+    4. Correlate with scheduled maintenance or authorized activities.
+    
+  severity: 2
+  category: "User Management"

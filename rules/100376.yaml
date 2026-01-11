@@ -1,29 +1,47 @@
-# Built-in admin was authenticated win
-field_order: ["srcuser", "dstuser", "host"]
+# Built-in administrator account login detected
+field_order: ["source", "target", "username", "login_type"]
 
 extract_rules:
-  srcuser: "data.win.eventdata.subjectUserName"
-  dstuser: "data.win.eventdata.targetUserName" 
-  host: "data.win.system.computer"
+  source: "data.win.eventdata.ipAddress"
+  target: "data.win.eventdata.workstationName"
+  username: "data.win.eventdata.targetUserName"
+  login_type: "data.win.eventdata.logonType"
 
 notification_extract_rules:
-  srcuser: "data.win.eventdata.subjectUserName"
-  srcdomain: "data.win.eventdata.subjectDomainName"
-  dstuser: "data.win.eventdata.targetUserName" 
-  dstdomain: "data.win.eventdata.targetDomainName"
-  host: "data.win.system.computer"
+  source_ip: "data.win.eventdata.ipAddress"
+  target_host: "data.win.system.computer"
+  username: "data.win.eventdata.targetUserName"
+  login_type: "data.win.eventdata.logonType"
+  login_process: "data.win.eventdata.processName"
+  domain: "data.win.eventdata.targetDomainName"
 
 fir:
-  subject: "Critical user {dstuser} password was changed by {dstuser} on {host}"
+  subject: "Built-in admin login: {username}@{domain} to {target_host} from {source_ip}"
   
   description_template: |
-    Critical user was deleted
-    Time: {timestamp}
-    Alert ID: {alert_id}
+    ## Built-in Administrator Account Login Detected
+    **Time:** {timestamp}
+    **Alert ID:** {alert_id}
     
-    Target User: {dstdomain}\{dstuser}
-    Source User: {srcdomain}\{srcuser}
-    Hostname: {host}
+    **Target Host:** {target_host}
+    **Source IP:** {source_ip}
+    **Username:** {username}@{domain}
+    **Logon Type:** {login_type}
+    **Logon Process:** {login_process}
+    
+    ### Investigation Context
+    Use of built-in administrator accounts (Administrator, SYSTEM, etc.) is often:
+    - Normal for initial system setup/maintenance
+    - Suspicious in daily operations
+    - Common in lateral movement attacks
+    - Used by malware for privilege escalation
         
+    ### Investigation Steps
+    1. **Legitimacy verification:** Check if this was scheduled maintenance.
+    2. **Source analysis:** Verify if {source_ip} is expected management host.
+    3. **Authentication method:** Check if NTLM/Kerberos was used.
+    4. **Post-login activity:** Review subsequent events on {target_host}.
+    5. **Account usage patterns:** Check frequency of built-in admin logins.
+    
   severity: 1
-  category: "User management"
+  category: "Suspicious Authentication"

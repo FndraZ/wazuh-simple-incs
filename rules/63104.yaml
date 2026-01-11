@@ -1,0 +1,35 @@
+# WINDOWS APPLICATION LOG CLEAR - EVENT ID 104
+field_order: ["hostname", "user", "log_name"]
+
+extract_rules:
+  hostname: "data.win.system.computer"
+  user: "data.win.logFileCleared.subjectUserName"
+  log_name: "data.win.logFileCleared.channel"
+
+notification_extract_rules:
+  host: "data.win.system.computer"
+  user: "data.win.logFileCleared.subjectUserName"
+  cleared_log: "data.win.logFileCleared.channel"
+
+fir:
+  subject: "Application log '{cleared_log}' was cleared on {host} by {user}"
+  
+  description_template: |
+    ## Windows Application Log Cleared (Event ID 104)
+    **Time:** {timestamp}
+    **Alert ID:** {alert_id}
+    
+    **Host:** {host}
+    **User:** {user}
+    **Cleared Log:** {cleared_log}
+    
+    ### Investigation Context
+    Event ID 104 indicates an application/system log was cleared. Attackers often clear specific logs to hide activity.
+    
+    ### Investigation Steps
+    1. **Assess criticality:** Determine if {cleared_log} contains security-relevant information.
+    2. **Cross-reference events:** Check security log for related suspicious activity.
+    3. **User investigation:** Examine other actions by {user}, especially administrative operations.
+    
+  severity: 2
+  category: "Log Tampering"

@@ -1,3 +1,4 @@
+# created user
 field_order: ["srcuser", "dstuser", "host"]
 
 extract_rules:
@@ -13,10 +14,10 @@ notification_extract_rules:
   host: "data.win.system.computer"
 
 fir:
-  subject: "User {dstuser} was created/enabled by {dstuser} on {host}"
+  subject: "User {dstuser} was created by {dstuser} on {host}"
   
   description_template: |
-    User was created/enabled
+    User was created
     Time: {timestamp}
     Alert ID: {alert_id}
     
@@ -25,4 +26,4 @@ fir:
     Hostname: {host}
         
   severity: 1
-  category: "User was created/enabled"
+  category: "User management"

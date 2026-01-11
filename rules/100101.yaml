@@ -1,4 +1,6 @@
 # Recon tools Windows Sysmon
+lua_script_sha: "dfa54253e8cff6d6b542e2c49c5d4e87b9e9fbd6"
+
 field_order: ["host", "user", "cmdline"]
 
 extract_rules:

@@ -9,7 +9,7 @@ import requests
 
 CONFIGS_DIR = "/var/ossec/etc/custom-exceptions"
 
-def get_nested(data, path):
+def get_nested(data, path, default=""):
     keys = path.split('.')
     for key in keys:
         if isinstance(data, dict):
@@ -68,7 +68,7 @@ def init_redis(options_path):
     except:
         return "error", 0
 
-def check_event_exclusion(event_hash, rule_id):
+def check_event_exclusion_hash(event_hash, rule_id):
     exceptions = load_exceptions(rule_id)
     return event_hash in exceptions if exceptions else False
 
@@ -99,31 +99,41 @@ def check_event_exclusion(fields_dict, rule_id):
     
     return False
 
-def send_alert_to_fir(alert, config, fir_url, fir_token):
-    notification_fields = {}
+def prepare_fir_fields(alert, config, extra_fields=None):
+    fields = {}
     
-    for field_name, path in config['notification_extract_rules'].items():
-        notification_fields[field_name] = str(get_nested(alert, path))
+    for field_name, path in config.get('notification_extract_rules', {}).items():
+        fields[field_name] = get_nested(alert, path)
     
-    notification_fields['timestamp'] = str(alert.get('timestamp'))
-    notification_fields['alert_id'] = str(alert.get('id'))
+    fields.update({
+        'timestamp': str(alert.get('timestamp')),
+        'alert_id': str(alert.get('id'))
+    })
     
-    fir_config = config.get('fir')
+    if extra_fields:
+        fields.update(extra_fields)
     
-    subject = fir_config.get('subject').format(**notification_fields)
-    description = fir_config.get('description_template').format(**notification_fields)
+    return fields
+
+def send_alert_to_fir(alert=None, config=None, fir_url=None, fir_token=None, extra_fields=None):
     
-    fir_payload = {
-        "subject": subject,
-        "description": description,
-        "severity": fir_config.get('severity', 3),
-        "category": fir_config.get('category', 'wazuh_alert'),
-        "is_incident": True,
-        "detection": 'Wazuh',
-        "confidentiality": fir_config.get('confidentiality', "C1")
-    }
+    final_fields = prepare_fir_fields(alert, config, extra_fields)
+    final_config = config.get('fir', {})
     
     try:
+        subject = final_config.get('subject', '').format(**final_fields)
+        description = final_config.get('description_template', '').format(**final_fields)
+        
+        fir_payload = {
+            "subject": subject,
+            "description": description,
+            "severity": final_config.get('severity', 3),
+            "category": final_config.get('category', 'wazuh_alert'),
+            "is_incident": True,
+            "detection": 'Wazuh',
+            "confidentiality": final_config.get('confidentiality', "C1")
+        }
+        
         headers = {
             "X-API": f"Token {fir_token}",
             "Content-Type": "application/json"
@@ -137,5 +147,5 @@ def send_alert_to_fir(alert, config, fir_url, fir_token):
         )
         
         return response.status_code == 201
-    except:
+    except Exception as e:
         return False
